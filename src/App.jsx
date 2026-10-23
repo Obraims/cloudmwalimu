@@ -15,6 +15,7 @@ import { AuthPage } from '@/pages/AuthPage';
 import { QuizPage } from '@/pages/QuizPage';
 import { FlashcardsPage } from '@/pages/FlashcardsPage';
 import { BuddyPage } from '@/pages/BuddyPage';
+import { ProfilePage } from '@/pages/ProfilePage';
 import { APP_NAME } from '@/config/brand';
 
 function PageLoader() {
@@ -25,7 +26,7 @@ function PageLoader() {
   }, []);
 
   return (
-    <div className="flex min-h-[65vh] flex-col items-center justify-center bg-[#050505] px-4">
+    <div className="flex min-h-[65vh] flex-col items-center justify-center bg-[#F6F8FA] dark:bg-[#050505] px-4">
       <div className="flex flex-col items-center gap-3 text-center">
         <div className="h-9 w-9 animate-spin rounded-full border-3 border-[#007BA7] border-t-transparent shadow-cerulean" />
         <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">
@@ -66,7 +67,7 @@ function AnimatedRoutes() {
 
   return (
     <div
-      className={`relative flex min-h-screen flex-col overflow-x-hidden bg-[#050505] text-[#FAF8F3] ${
+      className={`relative flex min-h-screen flex-col overflow-x-hidden bg-[#F6F8FA] text-[#101213] dark:bg-[#050505] dark:text-[#FAF8F3] ${
         user ? 'pb-[calc(4rem_+_env(safe-area-inset-bottom))] md:pb-0' : ''
       }`}
     >
@@ -134,6 +135,22 @@ function AnimatedRoutes() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/planner"
+                  element={
+                    <ProtectedRoute>
+                      <PlannerPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Catch-all */}
                 <Route path="*" element={<Navigate to="/" replace />} />
@@ -141,7 +158,7 @@ function AnimatedRoutes() {
             </motion.div>
           </AnimatePresence>
         </main>
-        <Footer />
+        {location.pathname !== '/buddy' && <Footer />}
       </div>
       <MobileTabBar />
     </div>

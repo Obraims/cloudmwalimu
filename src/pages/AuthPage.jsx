@@ -18,11 +18,13 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from '@/context/RouterContext';
+import { useTheme } from '@/context/ThemeContext';
 import { APP_NAME } from '@/config/brand';
 
 export function AuthPage() {
   const { signIn, signUp, signInWithGoogle, signInAsGuest, resetPassword, resendConfirmation, isConfigured } = useAuth();
   const { navigate } = useRouter();
+  const { resolvedTheme } = useTheme();
   const [mode, setMode] = useState('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -209,24 +211,21 @@ export function AuthPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-140px)] max-w-6xl items-center justify-center px-4 py-12 sm:px-6">
+    <div className="mx-auto flex min-h-[calc(100vh-140px)] max-w-6xl items-center justify-center px-4 pt-16 pb-16 sm:pt-20 sm:pb-20 sm:px-6">
       <div className="w-full max-w-md">
         {/* Brand Header */}
         <div className="mb-8 text-center flex flex-col items-center">
-          <div className="mb-3 flex items-center justify-center gap-2.5">
+          <div className="mb-4 flex items-center justify-center">
             <img
-              src="/brand/logo-mark.svg"
-              alt=""
-              className="h-10 w-10 rounded-xl object-contain shadow-sm"
+              src={resolvedTheme === 'light' ? '/brand/logo-full-light.svg' : '/brand/logo-full-dark.svg'}
+              alt={APP_NAME}
+              className="h-10 sm:h-12 w-auto object-contain"
             />
-            <span className="text-2xl font-extrabold tracking-tight text-[#FAF8F3]">
-              {APP_NAME}
-            </span>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-[#FAF8F3] sm:text-3xl">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[#101213] dark:text-[#FAF8F3] sm:text-3xl">
             {mode === 'signin' ? `Welcome back to ${APP_NAME}` : 'Create your learner account'}
           </h1>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 text-sm text-[#5B666E] dark:text-slate-400">
             {mode === 'signin'
               ? `Log in to track your AZ-900 readiness with ${APP_NAME}.`
               : 'Sign up to master Azure fundamentals with tailored AI guidance.'}
@@ -234,17 +233,17 @@ export function AuthPage() {
         </div>
 
         {/* Auth Card */}
-        <div className="bento-card border border-[#242424] bg-[#121212] p-6 shadow-lifted sm:p-8">
+        <div className="bento-card border border-[#DDE3E8] bg-white dark:border-[#242424] dark:bg-[#121212] p-6 shadow-sm dark:shadow-lifted sm:p-8">
           {/* Quick Demo Dashboard Access Card */}
-          <div className="mb-6 rounded-2xl border border-[#007BA7]/40 bg-gradient-to-br from-[#007BA7]/20 via-[#121212] to-[#FF007F]/15 p-4 shadow-sm">
+          <div className="mb-6 rounded-2xl border border-[#007BA7]/30 bg-[#EEF7FC] p-4 shadow-sm dark:border-[#007BA7]/40 dark:bg-gradient-to-br dark:from-[#007BA7]/20 dark:via-[#121212] dark:to-[#FF007F]/15">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#007BA7] to-[#FF007F] text-white shadow-cerulean">
                   <Sparkles className="h-5 w-5" />
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-[#F8FAFC]">Instant Demo Access</h3>
-                  <p className="text-xs text-slate-400">Explore AZ-900 Dashboard as Amina Kimani</p>
+                  <h3 className="text-sm font-bold text-[#101213] dark:text-[#F8FAFC]">Instant Demo Access</h3>
+                  <p className="text-xs text-[#5B666E] dark:text-slate-400">Explore AZ-900 Dashboard as Amina Kimani</p>
                 </div>
               </div>
               <button
@@ -260,7 +259,7 @@ export function AuthPage() {
           </div>
 
           {/* Mode Switcher Tabs */}
-          <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-[#181818] p-1 border border-[#242424]">
+          <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl border border-[#DDE3E8] bg-[#EEF3F6] p-1 dark:border-[#242424] dark:bg-[#181818]">
             <button
               type="button"
               onClick={() => {
@@ -271,7 +270,7 @@ export function AuthPage() {
               className={`rounded-lg py-2 text-xs font-bold transition-all ${
                 mode === 'signin'
                   ? 'bg-[#007BA7] text-white shadow-sm'
-                  : 'text-slate-400 hover:text-[#F8FAFC]'
+                  : 'text-[#5B666E] hover:text-[#101213] dark:text-slate-400 dark:hover:text-[#F8FAFC]'
               }`}
             >
               Sign In
@@ -286,7 +285,7 @@ export function AuthPage() {
               className={`rounded-lg py-2 text-xs font-bold transition-all ${
                 mode === 'signup'
                   ? 'bg-[#007BA7] text-white shadow-sm'
-                  : 'text-slate-400 hover:text-[#F8FAFC]'
+                  : 'text-[#5B666E] hover:text-[#101213] dark:text-slate-400 dark:hover:text-[#F8FAFC]'
               }`}
             >
               Create Account
@@ -346,7 +345,7 @@ export function AuthPage() {
               <div>
                 <label
                   htmlFor="auth-email-forgot"
-                  className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400"
+                  className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#101213] dark:text-slate-400"
                 >
                   Email Address
                 </label>
@@ -360,7 +359,7 @@ export function AuthPage() {
                     placeholder="Enter your registered email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-xl border border-[#242424] bg-[#181818] py-2.5 pl-10 pr-3.5 text-sm font-medium text-[#F8FAFC] outline-none transition-colors focus:border-[#007BA7] focus:bg-[#202020]"
+                    className="w-full rounded-xl border border-[#DDE3E8] bg-white text-[#101213] placeholder-slate-400 focus:border-[#007BA7] focus:ring-1 focus:ring-[#007BA7] dark:border-[#242424] dark:bg-[#181818] dark:text-[#F8FAFC] dark:placeholder-slate-500 py-2.5 pl-10 pr-3.5 text-sm font-medium outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -391,7 +390,7 @@ export function AuthPage() {
                     setErrorMsg('');
                     setSuccessMsg('');
                   }}
-                  className="text-xs font-bold text-slate-400 hover:text-[#F8FAFC]"
+                  className="text-xs font-bold text-[#5B666E] hover:text-[#101213] dark:text-slate-400 dark:hover:text-[#F8FAFC]"
                 >
                   ← Back to Sign In
                 </button>
@@ -404,7 +403,7 @@ export function AuthPage() {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={submitting}
-              className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#2e2e2e] bg-[#181818] hover:bg-[#202020] hover:border-slate-500 py-2.5 text-xs font-bold text-[#F8FAFC] shadow-sm transition-all hover:scale-[1.01] active:scale-98 disabled:opacity-70"
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#DDE3E8] bg-white text-[#101213] hover:bg-slate-50 shadow-sm dark:border-[#2e2e2e] dark:bg-[#181818] dark:text-[#F8FAFC] dark:hover:bg-[#202020] py-2.5 text-xs font-bold transition-all hover:scale-[1.01] active:scale-98 disabled:opacity-70"
             >
               <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
                 <path
@@ -428,8 +427,8 @@ export function AuthPage() {
             </button>
 
             <div className="relative my-3 flex items-center justify-center">
-              <div className="w-full border-t border-[#242424]" />
-              <span className="absolute bg-[#121212] px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              <div className="w-full border-t border-[#DDE3E8] dark:border-[#242424]" />
+              <span className="absolute bg-white px-3 text-[10px] font-bold uppercase tracking-wider text-[#5B666E] dark:bg-[#121212] dark:text-slate-500">
                 or continue with email
               </span>
             </div>
@@ -437,7 +436,7 @@ export function AuthPage() {
               <div>
                 <label
                   htmlFor="auth-name"
-                  className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400"
+                  className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#101213] dark:text-slate-400"
                 >
                   Full Name / Display Name
                 </label>
@@ -452,7 +451,7 @@ export function AuthPage() {
                     placeholder="e.g. Alex Kimani"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full rounded-xl border border-[#242424] bg-[#181818] py-2.5 pl-10 pr-3.5 text-sm font-medium text-[#F8FAFC] outline-none transition-colors focus:border-[#007BA7] focus:bg-[#202020]"
+                    className="w-full rounded-xl border border-[#DDE3E8] bg-white text-[#101213] placeholder-slate-400 focus:border-[#007BA7] focus:ring-1 focus:ring-[#007BA7] dark:border-[#242424] dark:bg-[#181818] dark:text-[#F8FAFC] dark:placeholder-slate-500 py-2.5 pl-10 pr-3.5 text-sm font-medium outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -461,7 +460,7 @@ export function AuthPage() {
             <div>
               <label
                 htmlFor="auth-email"
-                className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400"
+                className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#101213] dark:text-slate-400"
               >
                 Email Address
               </label>
@@ -476,7 +475,7 @@ export function AuthPage() {
                   placeholder="learner@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-[#242424] bg-[#181818] py-2.5 pl-10 pr-3.5 text-sm font-medium text-[#F8FAFC] outline-none transition-colors focus:border-[#007BA7] focus:bg-[#202020]"
+                  className="w-full rounded-xl border border-[#DDE3E8] bg-white text-[#101213] placeholder-slate-400 focus:border-[#007BA7] focus:ring-1 focus:ring-[#007BA7] dark:border-[#242424] dark:bg-[#181818] dark:text-[#F8FAFC] dark:placeholder-slate-500 py-2.5 pl-10 pr-3.5 text-sm font-medium outline-none transition-colors"
                 />
               </div>
             </div>
@@ -484,7 +483,7 @@ export function AuthPage() {
             <div>
               <label
                 htmlFor="auth-password"
-                className="mb-1.5 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400"
+                className="mb-1.5 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#101213] dark:text-slate-400"
               >
                 <span>Password</span>
                 {mode === 'signin' && (
@@ -525,7 +524,7 @@ export function AuthPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-[#242424] bg-[#181818] py-2.5 pl-10 pr-10 text-sm font-medium text-[#F8FAFC] outline-none transition-colors focus:border-[#007BA7] focus:bg-[#202020]"
+                  className="w-full rounded-xl border border-[#DDE3E8] bg-white text-[#101213] placeholder-slate-400 focus:border-[#007BA7] focus:ring-1 focus:ring-[#007BA7] dark:border-[#242424] dark:bg-[#181818] dark:text-[#F8FAFC] dark:placeholder-slate-500 py-2.5 pl-10 pr-10 text-sm font-medium outline-none transition-colors"
                 />
                 <button
                   type="button"
@@ -540,9 +539,9 @@ export function AuthPage() {
 
               {/* Password strength meter and checklist for Sign Up */}
               {mode === 'signup' && (
-                <div className="mt-2.5 space-y-2 rounded-xl border border-[#202020] bg-[#151515] p-3 text-xs">
+                <div className="mt-2.5 space-y-2 rounded-xl border border-[#DDE3E8] bg-[#F6F8FA] dark:border-[#202020] dark:bg-[#151515] p-3 text-xs">
                   {/* Strength Bar */}
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#242424]">
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#DDE3E8] dark:bg-[#242424]">
                     <div
                       className={`h-full transition-all duration-300 ${strengthMeta.color}`}
                       style={{ width: strengthMeta.width }}
@@ -650,12 +649,12 @@ export function AuthPage() {
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={`w-full rounded-xl border bg-[#181818] py-2.5 pl-10 pr-10 text-sm font-medium text-[#F8FAFC] outline-none transition-colors focus:bg-[#202020] ${
+                    className={`w-full rounded-xl border bg-white py-2.5 pl-10 pr-10 text-sm font-medium text-[#101213] placeholder-slate-400 outline-none transition-colors focus:ring-1 focus:ring-[#007BA7] dark:bg-[#181818] dark:text-[#F8FAFC] dark:placeholder-slate-500 ${
                       passwordsMismatch
                         ? 'border-[#FF007F] focus:border-[#FF007F]'
                         : passwordsMatch
                           ? 'border-emerald-500/70 focus:border-emerald-500'
-                          : 'border-[#242424] focus:border-[#007BA7]'
+                          : 'border-[#DDE3E8] dark:border-[#242424] focus:border-[#007BA7]'
                     }`}
                   />
                   <button
@@ -682,7 +681,7 @@ export function AuthPage() {
                 <div>
                   <label
                     htmlFor="auth-exam-date"
-                    className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400"
+                    className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#101213] dark:text-slate-400"
                   >
                     Exam Date
                   </label>
@@ -695,7 +694,7 @@ export function AuthPage() {
                       required
                       value={examDate}
                       onChange={(e) => setExamDate(e.target.value)}
-                      className="w-full rounded-xl border border-[#242424] bg-[#181818] py-2.5 pl-9 pr-2.5 text-xs font-medium text-[#F8FAFC] outline-none focus:border-[#007BA7]"
+                      className="w-full rounded-xl border border-[#DDE3E8] bg-white text-[#101213] dark:border-[#242424] dark:bg-[#181818] dark:text-[#F8FAFC] py-2.5 pl-9 pr-2.5 text-xs font-medium outline-none focus:border-[#007BA7]"
                     />
                   </div>
                 </div>
@@ -703,7 +702,7 @@ export function AuthPage() {
                 <div>
                   <label
                     htmlFor="auth-daily-hours"
-                    className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400"
+                    className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#101213] dark:text-slate-400"
                   >
                     Daily Hours
                   </label>
@@ -714,7 +713,7 @@ export function AuthPage() {
                       name="dailyHours"
                       value={dailyHours}
                       onChange={(e) => setDailyHours(e.target.value)}
-                      className="w-full rounded-xl border border-[#242424] bg-[#181818] py-2.5 pl-9 pr-2.5 text-xs font-medium text-[#F8FAFC] outline-none focus:border-[#007BA7]"
+                      className="w-full rounded-xl border border-[#DDE3E8] bg-white text-[#101213] dark:border-[#242424] dark:bg-[#181818] dark:text-[#F8FAFC] py-2.5 pl-9 pr-2.5 text-xs font-medium outline-none focus:border-[#007BA7]"
                     >
                       <option value="0.5">30 mins</option>
                       <option value="1">1 hour</option>
@@ -749,7 +748,7 @@ export function AuthPage() {
           </form>
           )}
 
-          <div className="mt-6 flex items-center justify-center gap-2 border-t border-[#242424] pt-4 text-center text-xs text-slate-400">
+          <div className="mt-6 flex items-center justify-center gap-2 border-t border-[#DDE3E8] pt-4 text-center text-xs text-[#5B666E] dark:border-[#242424] dark:text-slate-400">
             <Sparkles className="h-3.5 w-3.5 text-[#007BA7]" />
             <span>
               {isConfigured
@@ -763,7 +762,7 @@ export function AuthPage() {
           <button
             type="button"
             onClick={() => navigate('landing')}
-            className="text-xs font-semibold text-slate-400 hover:text-[#007BA7]"
+            className="text-xs font-semibold text-[#5B666E] hover:text-[#007BA7] dark:text-slate-400 dark:hover:text-[#007BA7]"
           >
             ← Back to Home Page
           </button>

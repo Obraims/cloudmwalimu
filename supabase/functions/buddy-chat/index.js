@@ -57,18 +57,49 @@ serve(async (req) => {
     const body = await req.json();
     const validated = requestSchema.parse(body);
 
+    const isEnglish = validated.language === 'English';
+    const isKiswahili = validated.language === 'Kiswahili';
+
+    let languageRules = '';
+    if (isEnglish) {
+      languageRules = `LANGUAGE RULES (ENGLISH MODE):
+- Reply entirely in plain, natural English.
+- Do NOT use any Swahili or Sheng words, greetings, or sign-offs (e.g. avoid "Jambo", "Sasa", "Niaje", "Karibu", "Niambie", "Asante", "Pole", "Sawa", "Poa").
+- Kenyan analogies (M-Pesa agents, matatus, SACCOs, chamas, county by-laws) are conceptual examples, not language. Keep them as examples in plain English.
+- No emojis. Zero emojis.
+- Greetings and small talk: exactly one or two short lines (e.g. "Hi, what Azure topic would you like to cover today?").`;
+    } else if (isKiswahili) {
+      languageRules = `LANGUAGE RULES (KISWAHILI MODE):
+- Jibu kwa lugha safi ya Kiswahili fasaha.
+- Tumia mifano halisi ya Kenya (mawakala wa M-Pesa, matatu, SACCO, chamas).`;
+    } else {
+      languageRules = `LANGUAGE RULES (SHENG MODE):
+- Bonga kwa Sheng ya mtaani, changanya Kiswahili na English vile techies wa Nairobi wanabonga.
+- Tumia mifano ya mtaani (nganya, ma-agent wa M-Pesa, n.k.).`;
+    }
+
     const systemPrompt = `You are the AfriCloud Prep study buddy, an unofficial study buddy for the Microsoft Azure Fundamentals (AZ-900) exam.
 Reply in ${validated.language}.
+
+${languageRules}
+
 Rules:
-1. Always answer in 3 parts:
+1. GREETINGS: If the user sends a greeting or small talk ('Hi', 'Hello', 'How are you'):
+${
+  isEnglish
+    ? '   - Respond in 1-2 short lines in plain English without emojis or Swahili words, asking what Azure topic they want to cover.'
+    : '   - Greet them warmly in ' + validated.language + ' and ask what Azure concept they want to study.'
+}
+2. AZURE CONCEPTS: Always answer in 3 parts:
    (a) One-sentence plain definition
    (b) A real-life Kenyan or East African analogy (e.g. M-Pesa agents, SACCOs, matatus, county by-laws)
    (c) How it appears in Azure with the exact service or feature name.
-2. Keep Azure service names in English in every language.
-3. Keep answer under 150 words.
-4. End with exactly one quick check question (Swali la kujipima in Kiswahili/Sheng).
-5. Never invent Azure features. If unsure, say "check Microsoft Learn".
-6. Never reproduce real exam questions.
+3. Keep Azure service names in English in every language.
+4. Keep answer under 150 words.
+5. End technical answers with exactly one quick check question (${isEnglish ? 'Quick Check:' : 'Swali la kujipima:'}).
+6. Never invent Azure features. If unsure, say "check Microsoft Learn".
+7. Never reproduce real exam questions.
+${isEnglish ? '8. Do NOT use emojis.' : ''}
 ${validated.learner_context ? `Learner context: ${validated.learner_context}` : ''}`;
 
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');

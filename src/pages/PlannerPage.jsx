@@ -305,10 +305,10 @@ export function PlannerPage() {
           <span className="eyebrow flex items-center gap-1.5 text-xs font-bold text-[#007BA7]">
             <Sparkles className="h-3.5 w-3.5" /> Adaptive AZ-900 Study Plan
           </span>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-[#F8FAFC] sm:text-4xl">
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-[#101213] dark:text-[#F8FAFC] sm:text-4xl">
             12-Day Study Planner
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">
+          <p className="mt-2 max-w-2xl text-sm text-[#5B666E] dark:text-slate-400">
             A step-by-step curriculum mapped to all 3 exam domains. Tick off milestones as you study and sync your schedule with Google or Apple Calendar.
           </p>
         </div>
@@ -325,11 +325,11 @@ export function PlannerPage() {
       {/* Top Controls Grid */}
       <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Settings Form */}
-        <div className="bento-card border border-[#242424] bg-[#121212] p-5 shadow-lifted">
+        <div className="bento-card border border-[#DDE3E8] bg-white dark:border-[#242424] dark:bg-[#121212] p-5 shadow-sm dark:shadow-lifted">
           <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Plan Settings</p>
           <form onSubmit={handleSaveSettings} className="mt-4 space-y-3">
             <div>
-              <label htmlFor="plan-exam-date" className="mb-1 block text-xs font-semibold text-slate-300">
+              <label htmlFor="plan-exam-date" className="mb-1 block text-xs font-semibold text-[#101213] dark:text-slate-300">
                 Target Exam Date
               </label>
               <div className="relative">
@@ -339,13 +339,13 @@ export function PlannerPage() {
                   type="date"
                   value={examDate}
                   onChange={(e) => setExamDate(e.target.value)}
-                  className="w-full rounded-xl border border-[#242424] bg-[#181818] py-2 pl-9 pr-3 text-xs font-medium text-[#F8FAFC] outline-none focus:border-[#007BA7]"
+                  className="w-full rounded-xl border border-[#DDE3E8] bg-[#F6F8FA] py-2 pl-9 pr-3 text-xs font-medium text-[#101213] dark:border-[#242424] dark:bg-[#181818] dark:text-[#F8FAFC] outline-none focus:border-[#007BA7]"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="plan-daily-hours" className="mb-1 block text-xs font-semibold text-slate-300">
+              <label htmlFor="plan-daily-hours" className="mb-1 block text-xs font-semibold text-[#101213] dark:text-slate-300">
                 Daily Study Commitment
               </label>
               <div className="relative">
@@ -354,7 +354,7 @@ export function PlannerPage() {
                   id="plan-daily-hours"
                   value={dailyHours}
                   onChange={(e) => setDailyHours(e.target.value)}
-                  className="w-full rounded-xl border border-[#242424] bg-[#181818] py-2 pl-9 pr-3 text-xs font-medium text-[#F8FAFC] outline-none focus:border-[#007BA7]"
+                  className="w-full rounded-xl border border-[#DDE3E8] bg-[#F6F8FA] py-2 pl-9 pr-3 text-xs font-medium text-[#101213] dark:border-[#242424] dark:bg-[#181818] dark:text-[#F8FAFC] outline-none focus:border-[#007BA7]"
                 >
                   <option value="0.5">30 mins / day</option>
                   <option value="1">1 hour / day</option>
@@ -379,7 +379,7 @@ export function PlannerPage() {
         </div>
 
         {/* Countdown & Total Hours Metric */}
-        <div className="bento-card bento-card-cerulean flex flex-col justify-between border border-[#242424] bg-[#121212] p-5 shadow-lifted">
+        <div className="bento-card bento-card-cerulean flex flex-col justify-between border border-[#DDE3E8] bg-white dark:border-[#242424] dark:bg-[#121212] p-5 shadow-sm dark:shadow-lifted">
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-[#007BA7]">Exam Countdown</p>
             <div className="mt-3 flex items-baseline gap-2">
@@ -399,7 +399,7 @@ export function PlannerPage() {
         </div>
 
         {/* Progress Card */}
-        <div className="bento-card flex flex-col justify-between border border-[#242424] bg-[#121212] p-5 shadow-lifted">
+        <div className="bento-card flex flex-col justify-between border border-[#DDE3E8] bg-white dark:border-[#242424] dark:bg-[#121212] p-5 shadow-sm dark:shadow-lifted">
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Curriculum Progress</p>
             <div className="mt-3 flex items-baseline gap-2">
@@ -448,12 +448,12 @@ export function PlannerPage() {
                 className={`rounded-2xl border p-5 transition-all ${
                   allDayTasksDone
                     ? 'border-emerald-500/40 bg-emerald-950/10'
-                    : 'border-[#242424] bg-[#121212] hover:border-[#333]'
+                    : 'border-[#DDE3E8] bg-white hover:border-slate-300 dark:border-[#242424] dark:bg-[#121212] dark:hover:border-[#333]'
                 }`}
               >
                 <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1c1c1c] text-xs font-extrabold text-[#F8FAFC] border border-[#2b2b2b]">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#F0F4F8] text-xs font-extrabold text-[#101213] border border-[#DDE3E8] dark:bg-[#1c1c1c] dark:text-[#F8FAFC] dark:border-[#2b2b2b]">
                       D{item.dayNumber}
                     </span>
                     <div>
@@ -489,7 +489,7 @@ export function PlannerPage() {
                         key={taskId}
                         onClick={() => toggleTask(taskId)}
                         className={`flex cursor-pointer items-start gap-3 rounded-xl p-2.5 text-xs transition-colors ${
-                          isDone ? 'bg-emerald-500/10 text-emerald-300' : 'hover:bg-[#181818] text-slate-300'
+                          isDone ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'hover:bg-[#F0F4F8] text-[#101213] dark:hover:bg-[#181818] dark:text-slate-300'
                         }`}
                       >
                         <button

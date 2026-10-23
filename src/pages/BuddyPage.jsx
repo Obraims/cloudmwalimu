@@ -1,6 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Bot, CheckCircle2, Send, Target, Trash2, XCircle } from 'lucide-react';
+import {
+  Bot,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  CreditCard,
+  Globe,
+  Lightbulb,
+  Send,
+  Shield,
+  ShieldCheck,
+  Target,
+  Trash2,
+  XCircle,
+} from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { isGeminiConfigured, askGeminiStudyBuddy } from '@/lib/geminiClient';
 import { useAuth } from '@/context/AuthContext';
@@ -19,13 +33,13 @@ const GREETINGS = {
   English: {
     id: 'init-1',
     role: 'ai',
-    text: 'Jambo! I am your AfriCloud Prep AZ-900 Study Buddy. Ask me any Azure concept and I will break it down using real-life Kenyan analogies - M-Pesa agents, matatus, SACCO locks, or county by-laws. You can chat in English, Kiswahili, or Sheng!\n\nTap any quick topic below or type your question to start.',
+    text: 'Hello! I am your AfriCloud Prep AZ-900 Study Buddy. Ask me any Azure concept and I will break it down using real-life Kenyan analogies - M-Pesa agents, matatus, SACCO locks, or county by-laws. You can chat in English, Kiswahili, or Sheng!\n\nTap any starter topic or type your question below.',
     lang: 'English',
   },
   Kiswahili: {
     id: 'init-1',
     role: 'ai',
-    text: 'Jambo! Mimi ni Study Buddy wako wa AfriCloud Prep kwa mtihani wa AZ-900. Niulize dhana yoyote ya Azure nami nitaifafanua kwa mifano halisi ya Kenya - mawakala wa M-Pesa, matatu, sefu za SACCO, au sheria za kaunti. Unaweza kuongea nami kwa Kiingereza, Kiswahili, au Sheng!\n\nBofya mada yoyote hapa chini au andika swali lako kuanza.',
+    text: 'Jambo! Mimi ni Study Buddy wako wa AfriCloud Prep kwa mtihani wa AZ-900. Niulize dhana yoyote ya Azure nami nitaifafanua kwa mifano halisi ya Kenya - mawakala wa M-Pesa, matatu, sefu za SACCO, au sheria za kaunti. Unaweza kuongea nami kwa Kiingereza, Kiswahili, au Sheng!\n\nChagua mada yoyote au andika swali lako hapa chini.',
     lang: 'Kiswahili',
   },
   Sheng: {
@@ -38,25 +52,52 @@ const GREETINGS = {
 
 const INITIAL_GREETING = GREETINGS.English;
 
+const STARTER_TOPICS = [
+  {
+    title: 'Availability Zones',
+    subtitle: 'Keep your app running if a datacenter fails',
+    prompt: 'Explain Azure Availability Zones using an M-Pesa agent analogy',
+    icon: Globe,
+  },
+  {
+    title: 'Shared Responsibility',
+    subtitle: 'What Microsoft secures vs what you secure',
+    prompt: 'How does the Shared Responsibility Model work? Use a matatu analogy',
+    icon: ShieldCheck,
+  },
+  {
+    title: 'CapEx vs OpEx',
+    subtitle: 'Buy upfront or pay as you use',
+    prompt: 'What is the difference between CapEx and OpEx in cloud spending?',
+    icon: CreditCard,
+  },
+  {
+    title: 'NSG vs Azure Firewall',
+    subtitle: 'Two ways to control network traffic',
+    prompt: 'Differentiate between Network Security Groups and Azure Firewall using county by-laws',
+    icon: Shield,
+  },
+];
+
 const SUGGESTED_PROMPTS = [
   {
-    label: '🌍 Availability Zones',
+    label: 'Availability Zones',
     prompt: 'Explain Azure Availability Zones using an M-Pesa analogy',
   },
   {
-    label: '🚌 Shared Responsibility',
+    label: 'Shared Responsibility',
     prompt: 'How does the Shared Responsibility Model work? Use a matatu analogy',
   },
   {
-    label: '💰 CapEx vs OpEx',
+    label: 'CapEx vs OpEx',
     prompt: 'What is the difference between CapEx and OpEx in cloud computing?',
   },
   {
-    label: '🛡️ NSG vs Azure Firewall',
+    label: 'NSG vs Azure Firewall',
     prompt: 'Differentiate between Network Security Groups and Azure Firewall',
   },
   {
-    label: '📦 Azure Storage Tiers',
+    label: 'Storage Tiers',
     prompt: 'Explain Hot, Cool, and Archive Blob Storage tiers in Sheng',
   },
 ];
@@ -126,13 +167,35 @@ function findMatchingQuestion(text = '') {
 }
 
 export function BuddyPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { navigate } = useRouter();
   const [messages, setMessages] = useState([INITIAL_GREETING]);
   const [draft, setDraft] = useState('');
-  const [lang, setLang] = useState('English');
+  const [lang, setLang] = useState(() => {
+    return profile?.buddy_language || localStorage.getItem('africloud_buddy_lang') || 'English';
+  });
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef(null);
+  const langMenuRef = useRef(null);
+
+  // Sync default language from profile if available
+  useEffect(() => {
+    if (profile?.buddy_language && languages.includes(profile.buddy_language)) {
+      setLang(profile.buddy_language);
+    }
+  }, [profile?.buddy_language]);
+
+  // Close language dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (langMenuRef.current && !langMenuRef.current.contains(e.target)) {
+        setLangMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const saveLocalMessages = (msgs) => {
     try {
@@ -156,7 +219,7 @@ export function BuddyPage() {
         } catch (e) {
           console.warn('Local chat load notice:', e);
         }
-        setMessages([INITIAL_GREETING]);
+        setMessages([GREETINGS[lang] || INITIAL_GREETING]);
         return;
       }
 
@@ -186,7 +249,7 @@ export function BuddyPage() {
           console.warn('Remote chat load notice:', e);
         }
       }
-      setMessages([INITIAL_GREETING]);
+      setMessages([GREETINGS[lang] || INITIAL_GREETING]);
     }
     loadUserMessages();
   }, [user]);
@@ -196,7 +259,8 @@ export function BuddyPage() {
   }, [messages, typing]);
 
   const clearChat = async () => {
-    setMessages([INITIAL_GREETING]);
+    const freshGreeting = GREETINGS[lang] || INITIAL_GREETING;
+    setMessages([freshGreeting]);
     if (!isSupabaseConfigured()) {
       localStorage.removeItem('africloud_prep_chat_messages');
     } else if (user?.id) {
@@ -206,6 +270,20 @@ export function BuddyPage() {
         console.warn('Failed to clear remote chat:', e);
       }
     }
+  };
+
+  const handleLanguageSelect = (selectedLang) => {
+    setLang(selectedLang);
+    setLangMenuOpen(false);
+    localStorage.setItem('africloud_buddy_lang', selectedLang);
+
+    // If chat only has initial greeting, update greeting to new language
+    setMessages((prev) => {
+      if (prev.length <= 1 && (prev[0]?.id === 'init-1' || prev.length === 0)) {
+        return [GREETINGS[selectedLang] || GREETINGS.English];
+      }
+      return prev;
+    });
   };
 
   const handleQuizMe = (aiMsg) => {
@@ -268,6 +346,7 @@ export function BuddyPage() {
       }
     }
 
+    // Add missed questions to flashcard queue
     if (!isCorrect) {
       const domainLabel =
         q.domain_id === 1
@@ -281,7 +360,7 @@ export function BuddyPage() {
         user_id: user?.id || 'demo-user',
         question_id: q.id,
         front: q.question,
-        back: `${q.options[q.answerIndex]}\n\n💡 ${q.explanation}`,
+        back: `${q.options[q.answerIndex]}\n\nExplanation: ${q.explanation}`,
         domain: domainLabel,
         box: 1,
         next_review: new Date().toISOString(),
@@ -351,7 +430,6 @@ export function BuddyPage() {
           const next = [...updated, aiMsg];
           setMessages(next);
           setTyping(false);
-
           if (!isSupabaseConfigured()) {
             saveLocalMessages(next);
           } else if (user?.id) {
@@ -364,109 +442,137 @@ export function BuddyPage() {
                   lang,
                 },
               ]);
-            } catch (err) {
-              console.warn('Chat persistence notice:', err);
+            } catch (e) {
+              console.warn('Could not persist AI reply:', e);
             }
           }
           return;
         }
-      } catch (geminiError) {
-        console.warn('Live Gemini AI query failed, falling back to edge/offline engine:', geminiError);
+      } catch (geminiErr) {
+        console.warn('Gemini client call failed, trying Edge Function fallback:', geminiErr);
       }
     }
 
-    // 2. Supabase Edge Function fallback if deployed
+    // 2. Supabase Edge Function fallback
     if (isSupabaseConfigured()) {
       try {
-        const { data, error } = await supabase.functions.invoke('buddy-chat', {
-          body: { message: text, language: lang },
+        const { data: edgeData, error: edgeError } = await supabase.functions.invoke('buddy-chat', {
+          body: {
+            message: text,
+            language: lang,
+            user_id: user?.id || null,
+          },
         });
 
-        if (data?.reply && !error) {
+        if (!edgeError && edgeData?.reply) {
           const aiMsg = {
             id: `a${Date.now()}`,
             role: 'ai',
-            text: data.reply,
+            text: edgeData.reply,
             lang,
           };
           const next = [...updated, aiMsg];
           setMessages(next);
           setTyping(false);
-
-          if (user?.id) {
-            await supabase.from('chat_messages').insert([
-              {
-                user_id: user.id,
-                role: 'ai',
-                text: data.reply,
-                lang,
-              },
-            ]);
-          }
+          saveLocalMessages(next);
           return;
         }
-      } catch (e) {
-        console.warn('Edge function invoke notice:', e);
+      } catch (edgeErr) {
+        console.warn('Edge function invoke fallback encountered error:', edgeErr);
       }
     }
 
-    // High-fidelity Kenyan analogy engine for offline & demo mode
-    setTimeout(async () => {
+    // 3. Local Deterministic Analogy Engine fallback
+    setTimeout(() => {
+      const lower = text.toLowerCase().trim();
       let replyText = '';
-      const q = text.toLowerCase();
 
-      if (q.includes('zone') || q.includes('availability') || q.includes('redundancy')) {
+      const isGreeting =
+        lower === 'hi' ||
+        lower === 'hello' ||
+        lower === 'hey' ||
+        lower.startsWith('hi ') ||
+        lower.startsWith('hello ') ||
+        lower.startsWith('hey ') ||
+        lower.includes('how are you') ||
+        lower.includes('habari') ||
+        lower.includes('sasa') ||
+        lower.includes('niaje') ||
+        lower.includes('mambo');
+
+      if (isGreeting) {
         if (lang === 'Kiswahili') {
           replyText =
-            'Availability Zone ni eneo lililotengwa kimwili ndani ya Azure region lenye stima, ubaridi, na mtandao wake huru.\n\nFikiria maduka mawili ya wakala wa M-Pesa mtaani: moja likikosa stima au kuezekwa upya, bado unatoa pesa kwenye duka lingine lililopo mtaa wa pili bila kukwama.\n\nKwenye Azure, ukisambaza virtual machines zako kwenye Availability Zones tofauti, hitilafu ya jengo zima la datacenter haitafunga app yako.\n\nSwali la kujipima: Ukiweka VMs zako kwenye zone moja pekee, nini kitatokea jengo hilo likipata hitilafu ya umeme?';
+            'Jambo! Niko salama na tayari kukusaidia. Ni mada gani ya Azure ungependa tujifunze leo?';
         } else if (lang === 'Sheng') {
           replyText =
-            'Availability Zone ni base imejitegemea physically ndani ya Azure region ikiwa na stima, cooling na neti yake yenyewe.\n\nNi kama kuwa na ma-agent wawili wa M-Pesa mtaani — mmoja Westlands na mwingine Upper Hill. Ya Westy ikilala, ya Upper Hill bado inachapa kazi fiti.\n\nKwa Azure, unagawa VMs zako across Availability Zones ndio hata stima ikikatika tao, app ya biz yako inastay alive bila glitch.\n\nSwali la kujipima: Zone moja ikilala na uliweka system nzima hapo, app inabaki ama inazama?';
+            'Niaje! Niko fiti sana. Ni topic gani ya Azure ungependa tupige leo?';
         } else {
           replyText =
-            'An Availability Zone is a physically separate location inside an Azure region with independent power, cooling, and networking.\n\nThink of separate M-Pesa agent shops on different streets in one town. If one shop closes due to a local power blackout, you can still withdraw cash at the other shop across the street.\n\nIn Azure, deploying virtual machines across multiple Availability Zones protects your workload from an entire datacenter outage.\n\nQuick check: If you deploy all your VMs in a single Availability Zone, what happens if that datacenter facility fails?';
+            'Hi! What Azure topic would you like to cover today?';
         }
       } else if (
-        q.includes('shared responsibility') ||
-        q.includes('responsibility') ||
-        q.includes('matatu')
+        lower.includes('zone') ||
+        lower.includes('availability') ||
+        lower.includes('datacenter') ||
+        lower.includes('m-pesa')
       ) {
         if (lang === 'Kiswahili') {
           replyText =
-            'Shared Responsibility Model inabainisha majukumu ya kiusalama kati ya mtoa huduma (Microsoft) na mteja.\n\nFikiria ushirikiano wa matatu: mwenye gari anahakikisha gari lina bima, mafuta na tairi safi, lakini abiria anawajibika kulinda begi na simu yake asipokonywe.\n\nKwenye Azure, Microsoft inalinda majengo na mashine za asili (physical datacenters), lakini wewe mwenyewe unawajibika kulinda akaunti, manenosiri na data zako.\n\nSwali la kujipima: Chini ya IaaS, nani anawajibika kuweka security patches kwenye mfumo wa uendeshaji (OS)?';
+            'Availability Zone ni kama maduka tofauti ya wakala wa M-Pesa mtaani Kasarani, Westlands, na Ngong.\n\nKila duka liko kwenye jengo tofauti lenye stima na mtandao wake wa kujitegemea. Duka moja likikosa stima, wateja wanatembea mtaa wa pili na shughuli zinaendelea bila kusimama.\n\nVivyo hivyo, ukiweka servers zako kwenye Availability Zones mbili au tatu, datacenter moja ikizima, huduma yako haikati.\n\nUngependa tupime uelewa wako na swali la mtihani kuhusu hili?';
         } else if (lang === 'Sheng') {
           replyText =
-            'Shared Responsibility Model ni mkataba wa nani anabeba mzigo gani wa usalama kati yako na Microsoft.\n\nNi kama kupanda matatu ya Rongai: mwenye nganya anahakikisha injini na brakes ziko top, lakini kulinda simu yako mfukoni ni wajibu wako mwenyewe.\n\nKwa Azure, Microsoft inalinda chuma na datacenters, lakini credentials na data za wateja ni wewe unaziweka salama.\n\nSwali la kujipima: Kwa cloud, nani ana jukumu la kulinda passwords za wafanyakazi wako?';
+            'Availability Zone ni kama ma-agent wa M-Pesa kwa mtaa tofauti: Westy, Rongai, na tao.\n\nAgent mmoja akishuka stima ama network ikilala, wateja wanavuka tu duka ya pili na mambo inaendelea mbele fiti.\n\nKwa Azure, uki-spread VMs zako across zones, datacenter moja ikilala, system yako inabaki hewani bila stress.\n\nUko ready tuchape swali la practice test tucheki kama umeshika?';
         } else {
           replyText =
-            'The Shared Responsibility Model clearly divides security and operational duties between Microsoft and the cloud customer.\n\nThink of a matatu: the owner is responsible for roadworthiness and engine mechanics, while each passenger is responsible for their own wallet and phone.\n\nIn Azure, Microsoft always secures the physical infrastructure, while the customer remains responsible for data, identities, and device access regardless of cloud model.\n\nQuick check: Under an IaaS model, who is responsible for patching the guest operating system on a virtual machine?';
+            'An Availability Zone is like having M-Pesa agent booths in separate neighborhoods - Westlands, Kasarani, and Ngong.\n\nEach booth has its own independent power, cooling, and fiber connection. If the Westlands branch loses power, customers simply walk over to Kasarani and continue transacting seamlessly.\n\nIn Azure, hosting your workloads across multiple Availability Zones ensures your application stays online even if an entire physical datacenter goes dark.\n\nReady to test your mastery with a practice check on this concept?';
         }
       } else if (
-        q.includes('capex') ||
-        q.includes('opex') ||
-        q.includes('expenditure') ||
-        q.includes('cost')
+        lower.includes('shared responsibility') ||
+        lower.includes('responsibility') ||
+        lower.includes('matatu')
       ) {
         if (lang === 'Kiswahili') {
           replyText =
-            'CapEx ni gharama kubwa ya awali ya kununua vifaa (kama kununua matatu nzima), wakati OpEx ni gharama za uendeshaji wa kila siku kulingana na matumizi (kama kulipa nauli ya safari moja).\n\nCloud computing inaruhusu biashara kuacha CapEx kubwa na kuhamia mfumo wa OpEx ambapo unalipia tu rasilimali unazotumia kwa dakika au masaa.\n\nSwali la kujipima: Unaponunua server za kuweka ofisini kwako, hiyo ni CapEx au OpEx?';
+            'Shared Responsibility Model ni kama kusafiri na matatu ya Super Metro:\n\nDereva na mmiliki wanawajibika na injini, breki, na petroli (miundombinu ya Microsoft). Lakini mkoba wako, simu yako, na jinsi unavyofunga mkanda ni jukumu lako mwenyewe (data na usalama wako).\n\nKwenye IaaS, unawajibika na mfumo (OS) na programu. Kwenye SaaS (kama Microsoft 365), Microsoft inabeba karibu kila kitu isipokuwa data na watumiaji wako.\n\nJe, ungependa swali la practice check kuona jinsi AZ-900 inavyouliza hili?';
         } else if (lang === 'Sheng') {
           replyText =
-            'CapEx ni ile dau kubwa unatoa mwanzo kununua mali (kama kubuy probox ya biz), lakini OpEx ni zile ndururu unatoa daily kulingana na unavyotumia (kama kulipa fare ya matatu).\n\nKwa cloud, unahepa mzigo wa kubuy ma-server ghali na unalipia tu compute power yenye unatumia via OpEx model.\n\nSwali la kujipima: Kulipia subscription ya Azure kila mwezi kulingana na usage ni CapEx ama OpEx?';
+            'Shared Responsibility Model ni kama kupanda nganya ya Super Metro:\n\nDere na dereva wanashughulikia gari, engine, na mafuta (hiyo ni kazi ya Microsoft). Lakini simu yako kwa mfuko na seatbelt yako ni jukumu lako mwenyewe (hiyo ni data na password zako).\n\nKwenye IaaS unajipanga na OS na apps. Kwenye SaaS kama Office 365, Microsoft inashughulikia kila kitu, wewe kazi yako ni data na ma-user wako.\n\nNikuwekee swali la practice uone kama umeshika risto?';
         } else {
           replyText =
-            'Capital Expenditure (CapEx) is the upfront spending on physical hardware, while Operational Expenditure (OpEx) is spending on goods and services with ongoing pay-as-you-go costs.\n\nCloud computing shifts technology spending from upfront CapEx (buying racks and power supplies) to flexible OpEx (paying for compute hours on demand).\n\nQuick check: Does migrating from an on-premises datacenter to Azure primarily reduce CapEx or OpEx?';
+            'The Shared Responsibility Model is like commuting in a Nairobi matatu:\n\nThe SACCO and driver are responsible for the vehicle, engine health, tires, and fuel (the underlying cloud infrastructure managed by Microsoft). However, protecting your phone, handbag, and buckling your seatbelt is strictly your own responsibility (customer data, passwords, and access).\n\nIn IaaS you manage OS and apps; in SaaS (like Microsoft 365), Microsoft handles almost everything except your data and identities.\n\nWould you like a quick check question to see how the AZ-900 exam tests this?';
         }
-      } else if (q.includes('storage') || q.includes('blob') || q.includes('tier')) {
+      } else if (
+        lower.includes('capex') ||
+        lower.includes('opex') ||
+        lower.includes('cost') ||
+        lower.includes('spending')
+      ) {
         if (lang === 'Kiswahili') {
           replyText =
-            'Azure Blob Storage ina viwango vitatu vya kuhifadhi data: Hot (inayotumiwa mara kwa mara), Cool (inayotumiwa mara chache, angalau siku 30), na Archive (ya kuhifadhi muda mrefu, angalau siku 180).\n\nFikiria duka la rejareja: Hot ni bidhaa zilizopo kwenye kaunta ya mbele, Cool ni bidhaa zilizopo stoo ya nyuma, na Archive ni nyaraka za mwaka jana zilizofungiwa kwenye sefu.\n\nKwenye Azure, Archive tier inagharimu pesa kidogo sana kwa uhifadhi lakini inachukua masaa kadhaa kutoa data (rehydration).\n\nSwali la kujipima: Kiwango gani cha Blob Storage kina gharama ya chini zaidi ya kuhifadhi data kwa miaka mingi?';
+            'CapEx (Capital Expenditure) ni kama kununua gari lako mwenyewe: unalipa pesa nyingi mwanzo, unalipia gereji, na bima hata kama halisafiri.\n\nOpEx (Operational Expenditure) ni kama kulipa nauli ya kila safari unaposafiri: unalipia tu huduma unayotumia kwa sasa bila gharama kubwa za mwanzo.\n\nWingu la Azure linafuata mtindo wa OpEx (consumption-based pricing).\n\nUngependa nijaribu swali la mtihani la AZ-900 kuhusu gharama hizi?';
         } else if (lang === 'Sheng') {
           replyText =
-            'Azure Blob Storage iko na access tiers tatu: Hot, Cool, na Archive kulingana na vile unacheki data yako.\n\nFikiria chapaa: Hot ni pesa ya mfuko unachapa nayo miamala kila saa, Cool ni pesa ya KCB M-Pesa unavuta mara moja kwa mwezi, na Archive ni land title deed umelock kwa SACCO box miaka kumi.\n\nKwa Azure, Archive tier inasave coins mob lakini ikihitajika inabidi ungojee masaa kadhaa irehydrate.\n\nSwali la kujipima: Tier gani inafaa kwa medical records ambazo zinaangaliwa mara moja tu kwa mwaka?';
+            'CapEx ni kubuy gari yako cash: unatoa ganji mob upfront, kisha service na insurance ni juu yako hata gari ikikaa parking.\n\nOpEx ni kulipa fare ya matatu kila trip: unatoa doo ya ile safari umetumia tu bila deni kubwa ya kuanza.\n\nCloud kama Azure inatumia OpEx (consumption model) - unalipia tu kile unatumia kwa dakika au saa.\n\nNikugongee swali la practice uone vile exam huuliza hii kitu?';
         } else {
           replyText =
-            'Azure Blob Storage offers three access tiers: Hot (frequently accessed data), Cool (infrequently accessed for at least 30 days), and Archive (rarely accessed for at least 180 days).\n\nThink of inventory: Hot is cash in the register drawer, Cool is backup stock in the back room, and Archive is tax receipts locked in a warehouse safe.\n\nArchive tier provides the lowest storage costs per gigabyte but requires several hours of rehydration before data can be read.\n\nQuick check: Which access tier has the lowest storage cost but the highest retrieval latency?';
+            'CapEx (Capital Expenditure) is like buying a personal car upfront: significant initial cash outlay, plus ongoing maintenance costs even when parked.\n\nOpEx (Operational Expenditure) is like paying daily matatu bus fare: no massive upfront capital, and you only pay for the exact distance you travel.\n\nAzure cloud runs primarily on OpEx (pay-as-you-go consumption model).\n\nWould you like a sample AZ-900 practice check on CapEx vs OpEx?';
+        }
+      } else if (
+        lower.includes('storage') ||
+        lower.includes('tier') ||
+        lower.includes('blob') ||
+        lower.includes('archive')
+      ) {
+        if (lang === 'Kiswahili') {
+          replyText =
+            'Azure Blob Storage Tiers ni kama jinsi unavyoweka vyakula na stakabadhi nyumbani:\n\n1. Hot Tier: Meza ya kulia - chakula unachokula leo. Gharama ya kuhifadhi ni juu kidogo lakini kuipata ni haraka na nafuu.\n2. Cool Tier: Friji - unakula mara moja kwa wiki.\n3. Cold Tier: Kabati ya stoo - unakagua mara moja kwa mwezi.\n4. Archive Tier: Vyeti kwenye sefu ya benki - hufungui kwa miaka mingi. Gharama ya kuhifadhi ni nafuu sana, lakini ukihitaji inachukua masaa kadhaa kurejesha (rehydration).\n\nUngependa tupime hili kwa swali la mtihani?';
+        } else if (lang === 'Sheng') {
+          replyText =
+            'Blob Storage Tiers ni kama vile unavyoweka vitu zako za mtaa:\n\n1. Hot Tier: Mfuko wa koti - vitu unatumia kila dakika (kama simu na keys). Storage cost iko juu kiasi lakini kuichukua ni chapchap na free.\n2. Cool Tier: Droo ya meza - vitu unatumia mara moja kwa mwezi.\n3. Cold Tier: Sanduku ya kitanda - unacheki baada ya miezi kadhaa.\n4. Archive Tier: Vyeti kwa safe ya bank - haufungui kwa miaka. Bei ya storage ni cheeeap sana, lakini kurejesha huchukua masaa (rehydration).\n\nUko ready kwa practice check ya hii story?';
+        } else {
+          replyText =
+            'Azure Blob Storage access tiers are like how you store documents at home:\n\n1. Hot Tier: Your desk top - files accessed constantly. Higher storage cost, but lowest access fees.\n2. Cool Tier: Filing cabinet - accessed monthly (30-day minimum retention).\n3. Cold Tier: Closet storage - accessed rarely (90-day minimum retention).\n4. Archive Tier: Bank safety deposit box - stored for years (180-day minimum). Lowest storage cost, but retrieval takes several hours (rehydration).\n\nWould you like an AZ-900 exam practice check on storage tiers?';
         }
       } else {
         if (lang === 'Kiswahili') {
@@ -495,7 +601,7 @@ export function BuddyPage() {
         saveLocalMessages(next);
       } else if (user?.id) {
         try {
-          await supabase.from('chat_messages').insert([
+          supabase.from('chat_messages').insert([
             {
               user_id: user.id,
               role: 'ai',
@@ -510,275 +616,358 @@ export function BuddyPage() {
     }, 600);
   };
 
+  // Determine if we are currently in an empty state
+  const isChatEmpty =
+    messages.length === 0 ||
+    (messages.length === 1 && messages[0]?.id === 'init-1');
+
   return (
-    <div className="mx-auto max-w-3xl px-5 py-8 sm:px-6">
-      {/* Header with Mode indicator & Clear option */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto flex h-[calc(100vh-80px)] w-full max-w-[720px] flex-col px-4 pt-6 pb-4 sm:px-6">
+      {/* 2. HEADER */}
+      <div className="flex items-center justify-between border-b border-[#DDE3E8] pb-3.5 dark:border-[#222222] shrink-0">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#007BA7] text-white shadow-cerulean">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#007BA7]/15 text-[#007BA7] dark:bg-[#0b2f3d] dark:text-[#3bb4dd]">
             <Bot className="h-5 w-5" />
-          </span>
+          </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold tracking-tight text-[#F8FAFC]">
-                AfriCloud Prep Study Buddy
-              </h1>
-              <span
-                className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                  isGeminiConfigured()
-                    ? 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-                    : isSupabaseConfigured()
-                      ? 'border border-[#007BA7]/40 bg-[#007BA7]/10 text-[#007BA7]'
-                      : 'border border-slate-700 bg-slate-800 text-slate-300'
-                }`}
-              >
-                {isGeminiConfigured() ? 'AfriCloud AI Live' : isSupabaseConfigured() ? 'Cloud Sync' : 'Offline Ready'}
-              </span>
-            </div>
-            <p className="text-xs text-slate-400">
-              Kenyan analogies for AZ-900 with interactive practice checks
+            <h1 className="text-lg font-extrabold tracking-tight text-[#101213] dark:text-white">
+              Study Buddy
+            </h1>
+            <p className="text-xs text-[#5B666E] dark:text-slate-400">
+              Kenyan analogies for AZ-900
             </p>
           </div>
         </div>
 
-        {/* Controls: Language selector & Clear chat */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-xl border border-[#242424] bg-[#121212] p-1">
-            {languages.map((l) => (
-              <button
-                key={l}
-                onClick={() => {
-                setLang(l);
-                setMessages((prev) => {
-                  if (prev.length === 1 && prev[0].id === 'init-1') {
-                    return [GREETINGS[l] || GREETINGS.English];
-                  }
-                  return prev;
-                });
-              }}
-                className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
-                  lang === l
-                    ? 'bg-[#007BA7] text-white shadow-cerulean'
-                    : 'text-slate-400 hover:text-[#F8FAFC]'
-                }`}
-              >
-                {langFlag[l]} {l}
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={clearChat}
-            title="Reset conversation"
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#242424] bg-[#121212] text-slate-400 hover:text-[#FF007F] hover:border-[#FF007F]/40 transition-colors"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={clearChat}
+          aria-label="Clear chat"
+          title="Clear chat history"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#DDE3E8] bg-white text-[#5B666E] hover:border-[#FF007F] hover:text-[#FF007F] dark:border-[#262626] dark:bg-transparent dark:text-slate-400 dark:hover:text-white transition-colors"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
       </div>
 
-      {/* Chat Area */}
-      <div className="bento-card flex h-[580px] flex-col overflow-hidden p-0 border-[#242424] bg-[#121212]">
-        <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-5 scrollbar-thin">
-          {messages.map((m) => {
-            const isUser = m.role === 'user';
-            const isQuiz = m.role === 'quiz';
+      {/* CHAT AREA / EMPTY STATE */}
+      <div
+        ref={scrollRef}
+        className="flex-1 min-h-0 overflow-y-auto py-4 space-y-4 scrollbar-thin"
+      >
+        {isChatEmpty ? (
+          /* EMPTY STATE with 2x2 Topic Cards */
+          <div className="flex h-full flex-col justify-center py-4 sm:py-6 space-y-6 animate-fade-up">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#101213] dark:text-white tracking-tight">
+                {lang === 'English'
+                  ? 'What are we studying today?'
+                  : lang === 'Kiswahili'
+                    ? 'Jambo! Tunasoma nini leo?'
+                    : 'Niaje! Form ni gani leo?'}
+              </h2>
+              <p className="mt-2 text-sm text-[#5B666E] dark:text-slate-400 leading-relaxed max-w-xl">
+                {lang === 'English'
+                  ? 'Pick a topic or ask your own question. I explain AZ-900 with everyday Kenyan examples.'
+                  : lang === 'Kiswahili'
+                    ? 'Chagua mada au uliza swali lako. Ninafafanua dhana za AZ-900 kwa mifano ya kila siku ya Kenya.'
+                    : 'Chagua topic ama drop swali yako. Nitaweka risto za AZ-900 na ma-analogy za mtaani.'}
+              </p>
+            </div>
 
-            if (isQuiz && m.question) {
-              const q = m.question;
-              const isAnswered = m.revealed;
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 auto-rows-fr">
+              {STARTER_TOPICS.map((topic, i) => {
+                const Icon = topic.icon;
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => send(topic.prompt)}
+                    className="flex h-full items-start gap-3.5 rounded-2xl border border-[#DDE3E8] bg-white p-4 text-left shadow-sm hover:border-[#007BA7] hover:scale-[1.01] active:scale-[0.99] dark:border-[#262626] dark:bg-[#121212] transition-all group"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#007BA7]/10 text-[#007BA7] dark:bg-[#0b2f3d] dark:text-[#3bb4dd] group-hover:bg-[#007BA7] group-hover:text-white transition-colors">
+                      <Icon className="h-4.5 w-4.5" />
+                    </span>
+                    <div>
+                      <span className="block text-sm font-bold text-[#101213] dark:text-white">
+                        {topic.title}
+                      </span>
+                      <span className="mt-1 block text-xs text-[#5B666E] dark:text-slate-400 leading-relaxed">
+                        {topic.subtitle}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          /* ACTIVE CONVERSATION */
+          <div className="space-y-4">
+            {messages.map((m) => {
+              const isUser = m.role === 'user';
+              const isQuiz = m.role === 'quiz';
+
+              if (isQuiz && m.question) {
+                const q = m.question;
+                const isAnswered = m.revealed;
+
+                return (
+                  <motion.div
+                    key={m.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-2xl border border-[#007BA7]/30 bg-[#EEF7FC] p-4 text-[#101213] shadow-md dark:border-[#1f3a45] dark:bg-[#0f1a1f] dark:text-[#F8FAFC]"
+                  >
+                    <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#DDE3E8] dark:border-[#1f2d3a]">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#FF007F]">
+                          QUICK CHECK
+                        </span>
+                        <span className="text-xs font-bold text-[#007BA7]">
+                          • {q.objective || q.topic_id || 'Azure Concept'}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-[#5B666E] dark:text-slate-400">
+                        Difficulty:{' '}
+                        {q.difficulty === 1
+                          ? 'Beginner'
+                          : q.difficulty === 2
+                            ? 'Intermediate'
+                            : 'Advanced'}
+                      </span>
+                    </div>
+
+                    <p className="mb-3 text-sm font-semibold leading-relaxed text-[#101213] dark:text-[#F8FAFC]">
+                      {q.question}
+                    </p>
+
+                    <div className="space-y-2 mb-3">
+                      {q.options.map((opt, optIdx) => {
+                        const isSelected = m.selectedOption === optIdx;
+                        const isCorrect = optIdx === q.answerIndex;
+                        let btnClass =
+                          'border-[#DDE3E8] bg-white text-[#101213] hover:border-[#007BA7] hover:bg-[#EEF7FC] dark:border-[#242424] dark:bg-[#121212] dark:text-[#F8FAFC] dark:hover:bg-[#181818]';
+
+                        if (isAnswered) {
+                          if (isCorrect) {
+                            btnClass =
+                              'border-emerald-500 bg-emerald-50 text-emerald-800 font-bold dark:bg-emerald-950/40 dark:text-emerald-200';
+                          } else if (isSelected) {
+                            btnClass =
+                              'border-[#FF007F] bg-[#FF007F]/10 text-[#FF007F] font-bold dark:bg-[#FF007F]/15';
+                          } else {
+                            btnClass =
+                              'border-[#DDE3E8] bg-slate-100 text-[#5B666E] opacity-60 dark:border-[#1f2428] dark:bg-[#0c1014] dark:text-slate-500';
+                          }
+                        }
+
+                        return (
+                          <button
+                            key={optIdx}
+                            disabled={isAnswered}
+                            onClick={() => handleAnswerQuiz(m.id, q, optIdx)}
+                            className={`flex w-full items-start gap-2.5 rounded-xl border p-2.5 text-left text-xs transition-all ${btnClass}`}
+                          >
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-[#DDE3E8] text-[#5B666E] dark:border-[#333] dark:text-slate-300 text-[10px] font-bold">
+                              {String.fromCharCode(65 + optIdx)}
+                            </span>
+                            <span className="flex-1 leading-normal">{opt}</span>
+                            {isAnswered && isCorrect && (
+                              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                            )}
+                            {isAnswered && isSelected && !isCorrect && (
+                              <XCircle className="h-4 w-4 shrink-0 text-[#FF007F]" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {isAnswered && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="rounded-xl border border-[#DDE3E8] bg-white p-3 text-xs dark:border-[#1f2d3a] dark:bg-[#121820]"
+                      >
+                        <p className="font-semibold text-[#101213] dark:text-white mb-1 flex items-center gap-1.5">
+                          {m.selectedOption === q.answerIndex ? (
+                            <>
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                              <span>Correct! Safi sana.</span>
+                            </>
+                          ) : (
+                            <>
+                              <Lightbulb className="h-3.5 w-3.5 text-[#007BA7]" />
+                              <span>Why right, why wrong:</span>
+                            </>
+                          )}
+                        </p>
+                        <p className="text-[#333] dark:text-slate-300 leading-relaxed mb-2">
+                          {q.explanation}
+                        </p>
+                        {q.wrongExplanations &&
+                          m.selectedOption !== q.answerIndex &&
+                          q.wrongExplanations[m.selectedOption] && (
+                            <p className="text-[#FF007F] text-[11px] mb-2 font-medium">
+                              Option {String.fromCharCode(65 + m.selectedOption)}:{' '}
+                              {q.wrongExplanations[m.selectedOption]}
+                            </p>
+                          )}
+                        <div className="flex items-center justify-between pt-2 border-t border-[#DDE3E8] dark:border-[#223242]">
+                          <span className="text-[11px] text-[#5B666E] dark:text-slate-400">
+                            Recorded to your readiness score
+                          </span>
+                          <button
+                            onClick={() => navigate('quiz')}
+                            className="text-[11px] font-bold text-[#007BA7] hover:underline"
+                          >
+                            Full Practice Mode →
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                );
+              }
 
               return (
-                <motion.div
+                <div
                   key={m.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="rounded-2xl border border-[#007BA7]/40 bg-[#0a1218] p-4 text-[#F8FAFC] shadow-lg"
+                  className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#1f2d3a]">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#007BA7] text-white">
-                        <Target className="h-3.5 w-3.5" />
-                      </span>
-                      <span className="text-xs font-bold uppercase tracking-wider text-[#007BA7]">
-                        Practice Check: {q.objective || q.topic_id || 'Azure Concept'}
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-slate-400">
-                      Difficulty:{' '}
-                      {q.difficulty === 1
-                        ? 'Beginner'
-                        : q.difficulty === 2
-                          ? 'Intermediate'
-                          : 'Advanced'}
+                  {!isUser && (
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#007BA7]/15 text-[#007BA7] dark:bg-[#0b2f3d] dark:text-[#3bb4dd]">
+                      <Bot className="h-4 w-4" />
                     </span>
-                  </div>
-
-                  <p className="mb-3 text-sm font-semibold leading-relaxed text-[#F8FAFC]">
-                    {q.question}
-                  </p>
-
-                  <div className="space-y-2 mb-3">
-                    {q.options.map((opt, optIdx) => {
-                      const isSelected = m.selectedOption === optIdx;
-                      const isCorrect = optIdx === q.answerIndex;
-                      let btnClass =
-                        'border-[#242424] bg-[#121212] text-[#F8FAFC] hover:border-[#007BA7] hover:bg-[#181818]';
-
-                      if (isAnswered) {
-                        if (isCorrect) {
-                          btnClass =
-                            'border-emerald-500 bg-emerald-950/40 text-emerald-200 font-bold';
-                        } else if (isSelected) {
-                          btnClass = 'border-[#FF007F] bg-[#FF007F]/15 text-rose-200 font-bold';
-                        } else {
-                          btnClass = 'border-[#1f2428] bg-[#0c1014] text-slate-500 opacity-60';
-                        }
-                      }
-
-                      return (
-                        <button
-                          key={optIdx}
-                          disabled={isAnswered}
-                          onClick={() => handleAnswerQuiz(m.id, q, optIdx)}
-                          className={`flex w-full items-start gap-2.5 rounded-xl border p-2.5 text-left text-xs transition-all ${btnClass}`}
-                        >
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-[#333] text-[10px] font-bold">
-                            {String.fromCharCode(65 + optIdx)}
-                          </span>
-                          <span className="flex-1 leading-normal">{opt}</span>
-                          {isAnswered && isCorrect && (
-                            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
-                          )}
-                          {isAnswered && isSelected && !isCorrect && (
-                            <XCircle className="h-4 w-4 shrink-0 text-[#FF007F]" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {isAnswered && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="rounded-xl border border-[#1f2d3a] bg-[#121820] p-3 text-xs"
+                  )}
+                  <div className="flex flex-col gap-2 max-w-[85%]">
+                    <div
+                      className={`rounded-2xl p-4 text-sm leading-relaxed ${
+                        isUser
+                          ? 'bg-[#007BA7] text-white font-medium self-end rounded-br-sm'
+                          : 'border border-[#DDE3E8] bg-white text-[#101213] dark:border-[#242424] dark:bg-[#121212] dark:text-[#e6ebee] rounded-tl-sm whitespace-pre-line shadow-sm'
+                      }`}
                     >
-                      <p className="font-semibold text-white mb-1">
-                        {m.selectedOption === q.answerIndex
-                          ? '🎉 Safi sana! Correct.'
-                          : '💡 Why right, why wrong:'}
-                      </p>
-                      <p className="text-slate-300 leading-relaxed mb-2">{q.explanation}</p>
-                      {q.wrongExplanations &&
-                        m.selectedOption !== q.answerIndex &&
-                        q.wrongExplanations[m.selectedOption] && (
-                          <p className="text-[#FF007F] text-[11px] mb-2 font-medium">
-                            Option {String.fromCharCode(65 + m.selectedOption)}:{' '}
-                            {q.wrongExplanations[m.selectedOption]}
-                          </p>
-                        )}
-                      <div className="flex items-center justify-between pt-2 border-t border-[#223242]">
-                        <span className="text-[11px] text-slate-400">
-                          Recorded to your readiness score
-                        </span>
+                      {m.text}
+                    </div>
+
+                    {!isUser && m.id !== 'init-1' && (
+                      <div className="flex items-center gap-2 pl-1">
                         <button
-                          onClick={() => navigate('quiz')}
-                          className="inline-flex items-center gap-1 font-bold text-[#007BA7] hover:underline"
+                          onClick={() => handleQuizMe(m)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-[#007BA7]/40 bg-[#007BA7]/10 px-2.5 py-1 text-xs font-semibold text-[#007BA7] hover:bg-[#007BA7] hover:text-white transition-all active:scale-95"
                         >
-                          Full Practice Quiz <ArrowRight className="h-3 w-3" />
+                          <Target className="h-3.5 w-3.5" />
+                          Quiz me on this
                         </button>
                       </div>
-                    </motion.div>
-                  )}
-                </motion.div>
-              );
-            }
-
-            return (
-              <div key={m.id} className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
-                {!isUser && (
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#007BA7]/20 text-[#007BA7]">
-                    <Bot className="h-4 w-4" />
-                  </span>
-                )}
-                <div className="flex flex-col gap-2 max-w-[85%]">
-                  <div
-                    className={`rounded-2xl p-4 text-sm leading-relaxed ${
-                      isUser
-                        ? 'bg-[#007BA7] text-white font-medium self-end'
-                        : 'border border-[#242424] bg-[#181818] text-[#F8FAFC] whitespace-pre-line'
-                    }`}
-                  >
-                    {m.text}
+                    )}
                   </div>
+                </div>
+              );
+            })}
 
-                  {!isUser && m.id !== 'init-1' && (
-                    <div className="flex items-center gap-2 pl-1">
-                      <button
-                        onClick={() => handleQuizMe(m)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#007BA7]/40 bg-[#007BA7]/10 px-2.5 py-1 text-xs font-semibold text-[#007BA7] hover:bg-[#007BA7] hover:text-white transition-all active:scale-95"
-                      >
-                        <Target className="h-3.5 w-3.5" />
-                        Quiz me on this
-                      </button>
-                    </div>
-                  )}
+            {typing && (
+              <div className="flex gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#007BA7]/15 text-[#007BA7] dark:bg-[#0b2f3d] dark:text-[#3bb4dd]">
+                  <Bot className="h-4 w-4" />
+                </span>
+                <div className="rounded-2xl border border-[#DDE3E8] bg-white px-4 py-3 text-xs text-[#5B666E] dark:border-[#242424] dark:bg-[#121212] dark:text-slate-400">
+                  Your Study Buddy is preparing your Kenyan analogy in {lang}...
                 </div>
               </div>
-            );
-          })}
+            )}
+          </div>
+        )}
+      </div>
 
-          {typing && (
-            <div className="flex gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#007BA7]/20 text-[#007BA7]">
-                <Bot className="h-4 w-4" />
-              </span>
-              <div className="rounded-2xl border border-[#242424] bg-[#181818] px-4 py-3 text-xs text-slate-400">
-                Your Study Buddy is preparing your Kenyan analogy in {lang}...
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Quick prompt suggestions */}
-        <div className="flex items-center gap-2 overflow-x-auto px-4 py-2 border-t border-[#202020] bg-[#0c0c0c] scrollbar-none">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 shrink-0">
-            Topics:
-          </span>
-          {SUGGESTED_PROMPTS.map((p, idx) => (
-            <button
-              key={idx}
-              onClick={() => send(p.prompt)}
-              className="shrink-0 rounded-lg border border-[#242424] bg-[#141414] px-2.5 py-1 text-xs text-slate-300 hover:border-[#007BA7] hover:text-white transition-colors"
+      {/* 4. PINNED BOTTOM AREA */}
+      <div className="shrink-0 pt-2 space-y-2">
+        {/* Suggested Prompts (Hidden in empty state; soft fade on right edge; no scrollbars) */}
+        {!isChatEmpty && (
+          <div className="relative">
+            <div
+              className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-              {p.label}
-            </button>
-          ))}
-        </div>
+              {SUGGESTED_PROMPTS.map((p, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => send(p.prompt)}
+                  className="shrink-0 rounded-full border border-[#DDE3E8] bg-white px-3.5 py-1.5 text-xs text-slate-700 hover:border-[#007BA7] hover:text-[#007BA7] dark:border-[#2f2f2f] dark:bg-[#121212] dark:text-slate-300 dark:hover:border-[#007BA7] dark:hover:text-white transition-colors"
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            {/* Soft fade on the right edge */}
+            <div className="pointer-events-none absolute right-0 top-0 bottom-1 w-10 bg-gradient-to-l from-[#F6F8FA] dark:from-[#050505] to-transparent" />
+          </div>
+        )}
 
-        {/* Input */}
-        <div className="border-t border-[#242424] p-3.5 bg-[#121212]">
+        {/* Message Input Line with Language Dropdown on Left */}
+        <div className="relative flex items-center gap-2.5">
+          {/* 3. Compact Language Selector Button */}
+          <div ref={langMenuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setLangMenuOpen((prev) => !prev)}
+              aria-label="Change language"
+              className="flex h-12 shrink-0 items-center gap-1.5 rounded-xl border border-[#DDE3E8] bg-white px-3 text-xs font-bold text-[#101213] hover:border-[#007BA7] dark:border-[#2f2f2f] dark:bg-[#121212] dark:text-white transition-all shadow-sm"
+            >
+              <Globe className="h-4 w-4 text-[#007BA7] dark:text-[#3bb4dd]" />
+              <span>{langFlag[lang] || 'EN'}</span>
+              <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${langMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Upward Dropdown Menu */}
+            {langMenuOpen && (
+              <div className="absolute bottom-full mb-2 left-0 w-36 rounded-xl border border-[#DDE3E8] bg-white p-1.5 shadow-xl dark:border-[#262626] dark:bg-[#121212] z-40 animate-fade-up">
+                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-[#DDE3E8] dark:border-[#202020] mb-1">
+                  Language
+                </div>
+                {languages.map((l) => (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => handleLanguageSelect(l)}
+                    className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                      lang === l
+                        ? 'bg-[#007BA7]/10 text-[#007BA7] font-bold dark:bg-[#007BA7]/20 dark:text-[#3bb4dd]'
+                        : 'text-[#101213] hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-[#181818]'
+                    }`}
+                  >
+                    <span>{l}</span>
+                    {lang === l && <Check className="h-3.5 w-3.5 text-[#007BA7] dark:text-[#3bb4dd]" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Text Input */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
               send();
             }}
-            className="flex items-center gap-2"
+            className="flex-1 flex items-center gap-2"
           >
             <input
               type="text"
-              placeholder={`Ask your Study Buddy in ${lang} (e.g. "Availability zones ni nini?")`}
+              placeholder={`Ask about any AZ-900 topic in ${lang}...`}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              className="flex-1 rounded-xl border border-[#242424] bg-[#181818] px-4 py-2.5 text-sm text-[#F8FAFC] outline-none transition-colors focus:border-[#007BA7] focus:bg-[#202020]"
+              className="flex-1 h-12 rounded-xl border border-[#DDE3E8] bg-white px-4 text-sm font-medium text-[#101213] placeholder-slate-400 focus:border-[#007BA7] focus:outline-none dark:border-[#2f2f2f] dark:bg-[#121212] dark:text-white dark:placeholder-slate-500 shadow-sm transition-all"
             />
             <button
               type="submit"
               disabled={!draft.trim() || typing}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#007BA7] hover:bg-[#005C8A] text-white shadow-cerulean transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-40"
+              aria-label="Send message"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-[#007BA7] to-[#FF007F] text-white shadow-sm hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-4.5 w-4.5" />
             </button>
           </form>
         </div>

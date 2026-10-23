@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, BarChart3, Bot, BrainCircuit, Sparkles, Timer } from 'lucide-react';
 import { useRouter } from '@/context/RouterContext';
+import { useTheme } from '@/context/ThemeContext';
 import { APP_NAME } from '@/config/brand';
 
 const fadeUp = {
@@ -26,7 +27,7 @@ function MiniGauge({ value }) {
   return (
     <div className="relative flex h-32 w-32 items-center justify-center">
       <svg className="h-32 w-32 -rotate-90" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r={r} fill="none" strokeWidth="8" className="stroke-[#242424]" />
+        <circle cx="50" cy="50" r={r} fill="none" strokeWidth="8" className="stroke-[#DDE3E8] dark:stroke-[#242424] transition-colors" />
         <circle
           cx="50"
           cy="50"
@@ -40,8 +41,8 @@ function MiniGauge({ value }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="text-2xl font-extrabold tracking-tight text-[#F8FAFC]">{value}%</span>
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+        <span className="text-2xl font-extrabold tracking-tight text-[#101213] dark:text-[#F8FAFC]">{value}%</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5B666E] dark:text-slate-400">
           Readiness
         </span>
       </div>
@@ -51,6 +52,7 @@ function MiniGauge({ value }) {
 
 export function LandingPage() {
   const { navigate } = useRouter();
+  const { resolvedTheme } = useTheme();
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-12 sm:px-6 sm:py-20">
@@ -63,7 +65,7 @@ export function LandingPage() {
       >
         <motion.div variants={fadeUp} className="mb-6 flex justify-center">
           <img
-            src="/brand/logo-full.svg"
+            src={resolvedTheme === 'light' ? '/brand/logo-full-light.svg' : '/brand/logo-full-dark.svg'}
             alt={APP_NAME}
             className="h-14 sm:h-18 w-auto object-contain"
           />
@@ -78,7 +80,7 @@ export function LandingPage() {
 
         <motion.h1
           variants={fadeUp}
-          className="text-4xl font-extrabold tracking-tight text-[#F8FAFC] sm:text-6xl"
+          className="text-4xl font-extrabold tracking-tight text-[#101213] dark:text-[#F8FAFC] sm:text-6xl"
         >
           Study smart. <br />
           <span className="bg-gradient-to-r from-[#007BA7] via-[#00A3E0] to-[#FF007F] bg-clip-text text-transparent">
@@ -131,16 +133,19 @@ export function LandingPage() {
                 <BarChart3 className="h-4 w-4" />
               </span>
             </div>
-            <h3 className="mt-3 text-lg font-bold text-[#F8FAFC]">Exam Readiness Gauge</h3>
-            <p className="mt-1 text-sm text-slate-400">
+            <h3 className="mt-3 text-lg font-bold text-[#101213] dark:text-[#F8FAFC]">Exam Readiness Gauge</h3>
+            <p className="mt-1 text-sm text-[#5B666E] dark:text-slate-400">
               Deterministic readiness algorithm based on the official Microsoft Learn skills
               weights.
             </p>
           </div>
-          <div className="my-6 flex justify-center">
+          <div className="my-6 flex flex-col items-center justify-center">
+            <span className="mb-2 rounded-full border border-[#DDE3E8] bg-[#EEF3F6] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#5B666E] dark:border-[#242424] dark:bg-[#181818] dark:text-slate-400">
+              Sample preview
+            </span>
             <MiniGauge value={74} />
           </div>
-          <div className="rounded-xl border border-[#242424] bg-[#181818] p-3 text-xs text-slate-300">
+          <div className="rounded-xl border border-[#DDE3E8] bg-[#EEF3F6] dark:border-[#242424] dark:bg-[#181818] p-3 text-xs text-[#101213] dark:text-slate-300 transition-colors">
             <span className="font-bold text-[#FF007F]">Next best action:</span> Raise Governance by
             9% to unlock exam-ready.
           </div>
@@ -158,19 +163,19 @@ export function LandingPage() {
                 <Bot className="h-4 w-4" />
               </span>
             </div>
-            <h3 className="mt-3 text-lg font-bold text-[#F8FAFC]">AI Study Buddy</h3>
-            <p className="mt-1 text-sm text-slate-400">
+            <h3 className="mt-3 text-lg font-bold text-[#101213] dark:text-[#F8FAFC]">AI Study Buddy</h3>
+            <p className="mt-1 text-sm text-[#5B666E] dark:text-slate-400">
               Cloud concepts explained with Kenyan real-life examples - M-Pesa agents, matatus,
               SACCO keys, and county by-laws.
             </p>
           </div>
 
-          <div className="my-4 space-y-2.5 rounded-xl border border-[#242424] bg-[#181818] p-4">
+          <div className="my-4 space-y-2.5 rounded-xl border border-[#DDE3E8] bg-[#EEF3F6] dark:border-[#242424] dark:bg-[#181818] p-4 transition-colors">
             <div className="flex items-start gap-2.5">
               <span className="rounded-md bg-[#007BA7] px-2 py-0.5 text-[11px] font-bold text-white shrink-0">
                 SW
               </span>
-              <p className="text-xs font-semibold text-[#F8FAFC] leading-relaxed">
+              <p className="text-xs font-semibold text-[#101213] dark:text-[#F8FAFC] leading-relaxed">
                 "Availability Zone ni kama maduka tofauti ya wakala wa M-Pesa mtaani: moja likikosa
                 stima, lingine mtaa wa pili linaendelea kuhudumia."
               </p>
@@ -179,7 +184,7 @@ export function LandingPage() {
               <span className="rounded-md bg-[#FF007F] px-2 py-0.5 text-[11px] font-bold text-white shrink-0">
                 SH
               </span>
-              <p className="text-xs font-semibold text-[#F8FAFC] leading-relaxed">
+              <p className="text-xs font-semibold text-[#101213] dark:text-[#F8FAFC] leading-relaxed">
                 "Azure Policy ni kama by-laws za county - lazima kila gari ipitie inspection ndio
                 ishikwe na kanjo."
               </p>
@@ -201,27 +206,31 @@ export function LandingPage() {
         >
           <div>
             <div className="flex items-center justify-between">
-              <span className="eyebrow">Skills measured</span>
+              <div className="flex items-center gap-2">
+                <span className="eyebrow">Skills measured</span>
+                <span className="rounded-full border border-[#DDE3E8] bg-[#EEF3F6] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#5B666E] dark:border-[#242424] dark:bg-[#181818] dark:text-slate-400">
+                  Sample preview
+                </span>
+              </div>
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#007BA7]/20 text-[#007BA7]">
                 <BrainCircuit className="h-4 w-4" />
               </span>
             </div>
-            <h3 className="mt-3 text-lg font-bold text-[#F8FAFC]">Three Official Domains</h3>
-            <p className="mt-1 text-sm text-slate-400">
-              90 reviewed practice questions strictly aligned to the official Microsoft Learn
-              outline.
+            <h3 className="mt-3 text-lg font-bold text-[#101213] dark:text-[#F8FAFC]">Three Official Domains</h3>
+            <p className="mt-1 text-sm text-[#5B666E] dark:text-slate-400">
+              90 practice questions aligned to the official Microsoft Learn outline.
             </p>
           </div>
 
           <div className="my-4 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
             {officialDomains.map((d) => (
-              <div key={d.id} className="rounded-xl border border-[#242424] bg-[#181818] p-3">
+              <div key={d.id} className="rounded-xl border border-[#DDE3E8] bg-[#EEF3F6] dark:border-[#242424] dark:bg-[#181818] p-3 transition-colors">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-400">{d.weight}</span>
+                  <span className="text-[10px] font-bold text-[#5B666E] dark:text-slate-400">{d.weight}</span>
                   <span className="text-xs font-extrabold text-[#007BA7]">{d.readiness}%</span>
                 </div>
-                <p className="mt-1 text-xs font-bold text-[#F8FAFC] line-clamp-1">{d.name}</p>
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#242424]">
+                <p className="mt-1 text-xs font-bold text-[#101213] dark:text-[#F8FAFC] line-clamp-1">{d.name}</p>
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#DDE3E8] dark:bg-[#242424]">
                   <div
                     className="h-full rounded-full bg-[#007BA7]"
                     style={{ width: `${d.readiness}%` }}
@@ -251,15 +260,15 @@ export function LandingPage() {
                 <Timer className="h-4 w-4" />
               </span>
             </div>
-            <h3 className="mt-3 text-lg font-bold text-[#F8FAFC]">Leitner Flashcard Coach</h3>
-            <p className="mt-1 text-sm text-slate-400">
+            <h3 className="mt-3 text-lg font-bold text-[#101213] dark:text-[#F8FAFC]">Leitner Flashcard Coach</h3>
+            <p className="mt-1 text-sm text-[#5B666E] dark:text-slate-400">
               5-box spaced repetition. Any missed quiz question automatically turns into a review
               card.
             </p>
           </div>
 
-          <div className="my-4 flex items-center justify-between rounded-xl border border-[#242424] bg-[#181818] p-3 text-xs">
-            <span className="font-semibold text-slate-300">Due today:</span>
+          <div className="my-4 flex items-center justify-between rounded-xl border border-[#DDE3E8] bg-[#EEF3F6] dark:border-[#242424] dark:bg-[#181818] p-3 text-xs transition-colors">
+            <span className="font-semibold text-[#101213] dark:text-slate-300">Due today:</span>
             <span className="rounded-md bg-[#FF007F] px-2 py-0.5 font-bold text-white shadow-neonRose">
               Review Queue
             </span>

@@ -36,7 +36,7 @@ export function ArcGauge({ value, size = 220, thickness = 18, label, sublabel })
           fill="none"
           strokeWidth={thickness}
           strokeLinecap="round"
-          className="stroke-[#242424]"
+          className="stroke-[#DDE3E8] dark:stroke-[#242424] transition-colors"
         />
         {isRanked && (
           <path
@@ -51,17 +51,17 @@ export function ArcGauge({ value, size = 220, thickness = 18, label, sublabel })
       </svg>
       <div className="-mt-14 flex flex-col items-center">
         {isRanked ? (
-          <span className="text-6xl font-extrabold tracking-tight text-[#F8FAFC]">
+          <span className="text-6xl font-extrabold tracking-tight text-[#101213] dark:text-[#F8FAFC]">
             {clamped}
             <span className="text-2xl font-bold text-[#007BA7]">%</span>
           </span>
         ) : (
-          <span className="text-6xl font-extrabold tracking-tight text-slate-500">
+          <span className="text-6xl font-extrabold tracking-tight text-slate-400 dark:text-slate-500">
             —
           </span>
         )}
-        {label && <span className="mt-1 text-sm font-semibold text-slate-300">{label}</span>}
-        {sublabel && <span className="text-xs text-slate-400">{sublabel}</span>}
+        {label && <span className="mt-1 text-sm font-semibold text-[#101213] dark:text-slate-300">{label}</span>}
+        {sublabel && <span className="text-xs text-[#5B666E] dark:text-slate-400">{sublabel}</span>}
       </div>
     </div>
   );

@@ -135,7 +135,7 @@ export function FlashcardsPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <span className="eyebrow">{card.domain || 'Cloud Concepts'}</span>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-[#5B666E] dark:text-slate-400">
             Card {index + 1} of {cardList.length} Box {card.box || 1}
           </p>
         </div>
@@ -152,27 +152,27 @@ export function FlashcardsPage() {
         <motion.div
           animate={{ rotateY: flipped ? 180 : 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="bento-card border border-[#242424] bg-[#121212] relative flex h-full w-full flex-col justify-between p-8 text-center preserve-3d shadow-lifted"
+          className="bento-card border border-[#DDE3E8] bg-white dark:border-[#242424] dark:bg-[#121212] relative flex h-full w-full flex-col justify-between p-8 text-center preserve-3d shadow-lifted"
         >
           {!flipped ? (
             <div className="flex h-full flex-col justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#007BA7]">
                 Question
               </span>
-              <p className="my-auto text-lg font-bold leading-relaxed text-[#F8FAFC] sm:text-xl">
+              <p className="my-auto text-lg font-bold leading-relaxed text-[#101213] dark:text-[#F8FAFC] sm:text-xl">
                 {card.front}
               </p>
-              <p className="text-xs text-slate-500">Click or press Space to reveal answer</p>
+              <p className="text-xs text-[#5B666E] dark:text-slate-500">Click or press Space to reveal answer</p>
             </div>
           ) : (
             <div className="flex h-full flex-col justify-between [transform:rotateY(180deg)]">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF007F]">
                 Answer & Explanation
               </span>
-              <p className="my-auto text-sm leading-relaxed text-[#F8FAFC] sm:text-base whitespace-pre-line">
+              <p className="my-auto text-sm leading-relaxed text-[#101213] dark:text-[#F8FAFC] sm:text-base whitespace-pre-line">
                 {card.back}
               </p>
-              <p className="text-xs text-slate-500">Press 1 for Retry, 2 for Got it</p>
+              <p className="text-xs text-[#5B666E] dark:text-slate-500">Press 1 for Retry, 2 for Got it</p>
             </div>
           )}
         </motion.div>
@@ -182,7 +182,7 @@ export function FlashcardsPage() {
       <div className="mt-6 flex items-center justify-between gap-3">
         <button
           onClick={() => go(-1)}
-          className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#242424] bg-[#181818] text-slate-300 hover:border-[#007BA7] hover:text-white"
+          className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#DDE3E8] bg-white text-slate-700 hover:border-[#007BA7] hover:text-[#007BA7] dark:border-[#242424] dark:bg-[#181818] dark:text-slate-300 dark:hover:border-[#007BA7] dark:hover:text-white"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -190,7 +190,7 @@ export function FlashcardsPage() {
         <div className="flex flex-1 items-center justify-center gap-3">
           <button
             onClick={markRetry}
-            className="flex-1 rounded-xl border border-[#FF007F] bg-[#FF007F]/15 py-3 text-xs font-bold text-[#FF007F] transition-all hover:bg-[#FF007F] hover:text-white"
+            className="flex-1 rounded-xl border border-[#FF007F] bg-rose-50 text-rose-700 dark:bg-[#FF007F]/15 dark:text-[#FF007F] py-3 text-xs font-bold transition-all hover:bg-[#FF007F] hover:text-white"
           >
             Review Soon (1)
           </button>
@@ -204,7 +204,7 @@ export function FlashcardsPage() {
 
         <button
           onClick={() => go(1)}
-          className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#242424] bg-[#181818] text-slate-300 hover:border-[#007BA7] hover:text-white"
+          className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#DDE3E8] bg-white text-slate-700 hover:border-[#007BA7] hover:text-[#007BA7] dark:border-[#242424] dark:bg-[#181818] dark:text-slate-300 dark:hover:border-[#007BA7] dark:hover:text-white"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
